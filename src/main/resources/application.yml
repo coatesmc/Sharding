@@ -1,0 +1,60 @@
+server:
+  port: 8087
+  connection-timeout: 180000
+spring:
+  application:
+    name: shardingJdbc
+  main:
+    allow-bean-definition-overriding: true
+#  datasource:
+#    url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#    username: root
+#    password: 123456
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+sharding:
+  jdbc:
+    datasource:
+      names: db0,db1,db2
+      db0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+        username: root
+        password: 123456
+      db1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://118.190.210.198:3306/db1?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+        username: root
+        password: 123456
+      db2:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://118.190.210.198:3306/db2?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+        username: root
+        password: 123456
+    config:
+      sharding:
+        props:
+          sql.show: true
+      masterslave:
+        load-balance-algorithm-type: round_robin
+        name: dataSource
+        #        masterDataSourceName: db0
+        #        slaveDataSourceNames: db1, db2
+        master-data-source-name: db0
+        slave-data-source-names: db1,db2
+
+
+
+mybatis-plus:
+  mapper-locations: classpath*:com.coates/sharding/mapper/*/*.xml
+  executor-type: simple
+  type-aliases-package: com.coates.sharding.entity
+  typeEnumsPackage: com.baomidou.springboot.entity.enums
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-value: 0
+      logic-not-delete-value: 1
