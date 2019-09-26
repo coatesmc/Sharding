@@ -20,6 +20,6 @@ public interface  UserMapper extends BaseMapper<User> {
     @Select("select max(id) from user")
     long getMaxId();
 
-    @Insert({"insert into user (id, city, name) values(#{id}, #{city}, #{name})"})
+//    @Insert({""})
     int insert(User user);
 }

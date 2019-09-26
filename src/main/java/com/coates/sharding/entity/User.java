@@ -1,5 +1,6 @@
 package com.coates.sharding.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  * @Version 1.0
  **/
 @Data
+@TableName("user")
 public class User {
     private Long id;
     private String city;
