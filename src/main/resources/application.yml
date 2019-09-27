@@ -4,21 +4,22 @@ server:
 spring:
   application:
     name: shardingJdbc
+  http:
+    encoding:
+      charset: utf-8
+      enabled: true
+      force: true
   main:
     allow-bean-definition-overriding: true
-#  datasource:
-#    url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
-#    username: root
-#    password: 123456
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-sharding:
-  jdbc:
+#sharding-jdbc 分片规则配置
+#数据源
+  shardingsphere:
     datasource:
-      names: db0,db1,db2
+      names: db0,db1
       db0:
         type: com.alibaba.druid.pool.DruidDataSource
         driverClassName: com.mysql.cj.jdbc.Driver
-        jdbcUrl: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+        url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
         username: root
         password: 123456
         est-on-borrow: false
@@ -31,7 +32,7 @@ sharding:
       db1:
         type: com.alibaba.druid.pool.DruidDataSource
         driverClassName: com.mysql.cj.jdbc.Driver
-        jdbcUrl: jdbc:mysql://118.190.210.198:3306/db1?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+        url: jdbc:mysql://118.190.210.198:3306/db1?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
         username: root
         password: 123456
         est-on-borrow: false
@@ -41,53 +42,116 @@ sharding:
         connectionProperties: druid.stat.slowSqlMillis=2000
         validationQuery: SELECT 1
         poolPreparedStatements: true
-      db2:
-        type: com.alibaba.druid.pool.DruidDataSource
-        driverClassName: com.mysql.cj.jdbc.Driver
-        jdbcUrl: jdbc:mysql://118.190.210.198:3306/db2?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
-        username: root
-        password: 123456
-        est-on-borrow: false
-        test-while-idle: true
-        time-between-eviction-runs-millis: 18800
-        filters: mergeStat,wall,slf4j
-        connectionProperties: druid.stat.slowSqlMillis=2000
-        validationQuery: SELECT 1
-        poolPreparedStatements: true
-      db3:
-        type: com.alibaba.druid.pool.DruidDataSource
-        driverClassName: com.mysql.cj.jdbc.Driver
-        jdbcUrl: jdbc:mysql://118.190.210.198:3306/db3?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
-        username: root
-        password: 123456
-        est-on-borrow: false
-        test-while-idle: true
-        time-between-eviction-runs-millis: 18800
-        filters: mergeStat,wall,slf4j
-        connectionProperties: druid.stat.slowSqlMillis=2000
-        validationQuery: SELECT 1
-        poolPreparedStatements: true
-    config:
-      masterslave:
-        #        load-balance-algorithm-type: round_robin
-        #        name: dataSource
-        #        masterDataSourceName: db0
-        #        slaveDataSourceNames: db1, db2
-        #        master-data-source-name: db0,db1
-        #        slave-data-source-names: db2,db3
-        props:
-          sql.show: true
-
+      #指定配置t_order表数据分表分布情况，配置数据接节点
+    sharding:
+      tables:
+        t_order:
+          actual-data-nodes: db$->{0..1}.t_order_$->{1..2}
+          keyGenerator:
+            column: id
+            type: SNOWFLAKE
+        #指定t_order表的分片策略，分片策略包括分片键和分片算法
+          tableStrategy:
+            inline:
+              shardingColumn: id
+              algorithmExpression: t_order_$->{id % 2 + 1}
+    props:
+      sql:
+        show: true
+# 数据源 db0,db1,db2
+#sharding:
+#  jdbc:
+#    datasource:
+#      names: db0,db1,db2,db3
+#      type: com.alibaba.druid.pool.DruidDataSource
+#datasource:
+#  default:
+#    url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#    username: root
+#    password: 123456
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    test-on-borrow: false
+#    test-while-idle: true
+#    time-between-eviction-runs-millis: 18800
+#    filters: mergeStat,wall,slf4j
+#    connectionProperties: druid.stat.slowSqlMillis=2000
+#    validationQuery: SELECT 1
+#    poolPreparedStatements: true
+#  user:
+#    master:
+#      db0:
+#        driverClassName: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://118.190.210.198:3306/db0?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#        username: root
+#        password: 123456
+#        est-on-borrow: false
+#        test-while-idle: true
+#        time-between-eviction-runs-millis: 18800
+#        filters: mergeStat,wall,slf4j
+#        connectionProperties: druid.stat.slowSqlMillis=2000
+#        validationQuery: SELECT 1
+#        poolPreparedStatements: true
+#      db1:
+#        driverClassName: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://118.190.210.198:3306/db1?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#        username: root
+#        password: 123456
+#        est-on-borrow: false
+#        test-while-idle: true
+#        time-between-eviction-runs-millis: 18800
+#        filters: mergeStat,wall,slf4j
+#        connectionProperties: druid.stat.slowSqlMillis=2000
+#        validationQuery: SELECT 1
+#        poolPreparedStatements: true
+#    slave:
+#      db2:
+#        driverClassName: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://118.190.210.198:3306/db2?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#        username: root
+#        password: 123456
+#        est-on-borrow: false
+#        test-while-idle: true
+#        time-between-eviction-runs-millis: 18800
+#        filters: mergeStat,wall,slf4j
+#        connectionProperties: druid.stat.slowSqlMillis=2000
+#        validationQuery: SELECT 1
+#        poolPreparedStatements: true
+#      db3:
+#        driverClassName: com.mysql.cj.jdbc.Driver
+#        url: jdbc:mysql://118.190.210.198:3306/db3?seUnicode=true&characterEncoding=utf8&serverTimezone=GMT
+#        username: root
+#        password: 123456
+#        est-on-borrow: false
+#        test-while-idle: true
+#        time-between-eviction-runs-millis: 18800
+#        filters: mergeStat,wall,slf4j
+#        connectionProperties: druid.stat.slowSqlMillis=2000
+#        validationQuery: SELECT 1
+#        poolPreparedStatements: true
 
 #mybaits—plus 的配置
-mybatis-plus:
-  mapper-locations: classpath*:com.coates/sharding/mapper/*/*.xml
-  executor-type: simple
-  type-aliases-package: com.coates.sharding.entity
-  typeEnumsPackage: com.baomidou.springboot.entity.enums
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      logic-delete-value: 0
-      logic-not-delete-value: 1
+#mybatis-plus:
+#  mapper-locations: classpath*:com.coates/sharding/mapper/*/*.xml
+#  executor-type: simple
+#  type-aliases-package: com.coates.sharding.entity
+#  typeEnumsPackage: com.baomidou.springboot.entity.enums
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  global-config:
+#    db-config:
+#      logic-delete-value: 0
+#      logic-not-delete-value: 1
+
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+          web: info
+    com:
+      coates:
+        sharding: debug
+    druid:
+      sql: debug
+
+
